@@ -21,8 +21,6 @@ const navBarList = document.querySelector("#navbar__list");
 
 const sections = document.querySelectorAll("main section");
 
-const docBody = document.querySelector("body");
-
 const docFragment = document.createDocumentFragment();
 
 let scrollCounter = 0;
@@ -33,6 +31,10 @@ let scrollCounter = 0;
 */
 
 // build the nav
+/**
+ * This function is building the navigation bar dynamically
+ * depending on the number of sections
+ */
 function buildNav() {
     let listItem;
     let listItemAnchor;
@@ -51,8 +53,11 @@ function buildNav() {
     navBarList.appendChild(docFragment);
 }
 // Build toTop button
+/**
+ * This funnction creates a button in the footer used to anchor to top when clicked
+ */
 function buildToTopButton() {
-    let toTopButton = document.createElement("a");
+    const toTopButton = document.createElement("a");
     toTopButton.classList.add("toTopButton");
     toTopButton.classList.add("hide");
     toTopButton.innerHTML = '&#10148';
@@ -67,13 +72,23 @@ function buildToTopButton() {
  * 
 */
 
-// Document update at startup
+/**
+ * This handler is passed to "DOMContentLoaded" event listener
+ * handles these jobs: Create nav-bar elements
+ *                     Create to-top button
+ */
 function docUpdate() {
     buildNav();
     buildToTopButton();
 }
 
-// Add class 'active' to section when near top of viewport
+/**
+ * This handler is passed to "scroll" event listener
+ * handles these jobs: Expand navBar when scrolling
+ *                     Set active section and active link
+ *                     NavBar collapses after 700ms if user is not scrolling
+ *                     If scrolled below the fold, show the button
+ */
 function setActiveSection() {
     const pageHeader = document.querySelector(".page__header");
     let activated = false;
@@ -100,7 +115,7 @@ function setActiveSection() {
         }
     });
     
-    // Collapse after 700ms if user is not scrolling
+    // NavBar collapses after 700ms if user is not scrolling
     setTimeout(() => {
         scrollCounter--;
         if (scrollCounter === 0) {
@@ -117,15 +132,35 @@ function setActiveSection() {
     }
 }
 
-
-
-    // Scroll to anchor ID using scrollTO event
-    function scrollToSection(ev) {
-        const clickedTarget = ev.target ;
-        if (clickedTarget.classList.contains("menu__link")) {
-            document.querySelector("#"+clickedTarget.dataset.sect).scrollIntoView({behavior: "smooth"});
-        }
+/**
+ * This handler is passed to "click" event listener of "#navbar__list" element
+ * handles these jobs: Scroll to section when corresponding link is clicked
+ * @param  {} ev - The event parameter passed to event listener
+ */
+function scrollToSection(ev) {
+    const clickedTarget = ev.target ;
+    if (clickedTarget.classList.contains("menu__link")) {
+        document.querySelector("#"+clickedTarget.dataset.sect).scrollIntoView({behavior: "smooth"});
     }
+}
+
+// Make sections collapsible
+/**
+ * This handler is passed to "click" event listener of "main" element
+ * handles these jobs: Collapse/expand section when header is clicked
+ * @param  {} ev - The event parameter passed to event listener
+ */
+function collapsibleSections(ev) {
+    if (ev.target.classList.contains("collapsible")) {
+        ev.target.classList.toggle("active");
+        let content = ev.target.parentElement.nextElementSibling;
+    if (content.style.maxHeight != "0px"){
+      content.style.maxHeight = 0+ "px";
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    }
+    }
+}
 
 /**
  * End Main Functions
@@ -139,17 +174,6 @@ document.addEventListener("DOMContentLoaded", docUpdate);
 navBarList.addEventListener("click",scrollToSection);
 // Set sections as active
 document.addEventListener("scroll", setActiveSection);
-
 // Make sections collapsible
-document.querySelector("main").addEventListener("click", (ev) => {
-    if (ev.target.classList.contains("collapsible")) {
-        ev.target.classList.toggle("active");
-        let content = ev.target.parentElement.nextElementSibling;
-    if (content.style.maxHeight != "0px"){
-      content.style.maxHeight = 0+ "px";
-    } else {
-      content.style.maxHeight = content.scrollHeight + "px";
-    }
-    }
-})
-// Hide navBar while not scrolling
+document.querySelector("main").addEventListener("click", collapsibleSections);
+

@@ -17,22 +17,18 @@
  * Define Global Variables
  * 
 */
-let navBarElement = document.querySelector("#navbar__list");
+const navBarList = document.querySelector("#navbar__list");
 
 const sections = document.querySelectorAll("main section");
 
-let docFragment = document.createDocumentFragment();
+const docBody = document.querySelector("body");
+
+const docFragment = document.createDocumentFragment();
+
+let scrollCounter = 0;
 /**
  * End Global Variables
  * Start Helper Functions
- * 
-*/
-
-
-
-/**
- * End Helper Functions
- * Begin Main Functions
  * 
 */
 
@@ -45,37 +41,91 @@ function buildNav() {
         listItem = document.createElement("li");
 
         listItemAnchor = document.createElement("a");
-        listItemAnchor.href = "#"+section.id;
         listItemAnchor.textContent = section.dataset.nav;
         listItemAnchor.classList.add("menu__link");
+        listItemAnchor.dataset.sect = section.id;
 
         listItem.appendChild(listItemAnchor);
         docFragment.appendChild(listItem);
     }
-    navBarElement.appendChild(docFragment);
+    navBarList.appendChild(docFragment);
 }
+// Build toTop button
+function buildToTopButton() {
+    let toTopButton = document.createElement("a");
+    toTopButton.classList.add("toTopButton");
+    toTopButton.classList.add("hide");
+    toTopButton.innerHTML = '&#10148';
+    toTopButton.onclick = ()=> window.scrollTo(0,0);
+
+    document.querySelector("footer").appendChild(toTopButton);
+}
+
+/**
+ * End Helper Functions
+ * Begin Main Functions
+ * 
+*/
+
+// Document update at startup
+function docUpdate() {
+    buildNav();
+    buildToTopButton();
+}
+
 // Add class 'active' to section when near top of viewport
 function setActiveSection() {
-    sections.forEach((section, index)=>{
-        let navMenuList = navBarElement.children[index];
-        
-        if (section.getBoundingClientRect().bottom <= 1.5*section.getBoundingClientRect().height
-                && section.getBoundingClientRect().bottom > 0.5*section.getBoundingClientRect().height ) {
+    const pageHeader = document.querySelector(".page__header");
+    let activated = false;
+    // Expand navBar when scrolling
+    scrollCounter++;
+    pageHeader.style.transform = "translate(0, 0)";
+    // Set active section and active link
+    sections.forEach((section, index)=> {
+        let navMenuList = navBarList.children[index];
+        // Check if section is active and there is no previous active section
+        if (section.getBoundingClientRect().top <= 0.25 * window.innerHeight &&
+            section.getBoundingClientRect().top > -0.4 * section.getBoundingClientRect().height &&
+            !activated
+            ) {
             section.classList.add("activeSection");
             navMenuList.classList.add("activeLink");
+            activated = true;
         }
-        else {
+        // Check if section is set as active
+        else if(section.classList.contains("activeSection")) {
             section.classList.remove("activeSection");
             navMenuList.classList.remove("activeLink");
+            activated = false;
         }
     });
     
+    // Collapse after 700ms if user is not scrolling
+    setTimeout(() => {
+        scrollCounter--;
+        if (scrollCounter === 0) {
+        pageHeader.style.transform = "translate(0, -99%)";
+        }
+    }, 700);
+
+    // If scrolled below the fold, show the button
+    if (window.pageYOffset > 0.25 * window.innerHeight) {
+        document.querySelector(".toTopButton").classList.remove("hide");
+    }
+    else {
+        document.querySelector(".toTopButton").classList.add("hide");
+    }
 }
 
 
 
-// Scroll to anchor ID using scrollTO event
-
+    // Scroll to anchor ID using scrollTO event
+    function scrollToSection(ev) {
+        const clickedTarget = ev.target ;
+        if (clickedTarget.classList.contains("menu__link")) {
+            document.querySelector("#"+clickedTarget.dataset.sect).scrollIntoView({behavior: "smooth"});
+        }
+    }
 
 /**
  * End Main Functions
@@ -84,13 +134,14 @@ function setActiveSection() {
 */
 
 // Build menu 
-document.addEventListener("DOMContentLoaded", buildNav);
+document.addEventListener("DOMContentLoaded", docUpdate);
 // Scroll to section on link click
-
+navBarList.addEventListener("click",scrollToSection);
 // Set sections as active
 document.addEventListener("scroll", setActiveSection);
+
 // Make sections collapsible
-document.querySelector("main").addEventListener("click",(ev) => {
+document.querySelector("main").addEventListener("click", (ev) => {
     if (ev.target.classList.contains("collapsible")) {
         ev.target.classList.toggle("active");
         let content = ev.target.parentElement.nextElementSibling;
@@ -101,3 +152,4 @@ document.querySelector("main").addEventListener("click",(ev) => {
     }
     }
 })
+// Hide navBar while not scrolling

@@ -176,4 +176,3 @@ navBarList.addEventListener("click",scrollToSection);
 document.addEventListener("scroll", setActiveSection);
 // Make sections collapsible
 document.querySelector("main").addEventListener("click", collapsibleSections);
-
